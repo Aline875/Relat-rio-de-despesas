@@ -1,0 +1,9 @@
+[
+    { "mes": "Janeiro", "valor": 1000 },
+    { "mes": "Fevereiro", "valor": 1200 },
+    { "mes": "Março", "valor": 800 },
+    { "mes": "Abril", "valor": 1300 },
+    { "mes": "Maio", "valor": 1500 },
+    { "mes": "Junho", "valor": 900 },
+    { "mes": "Julho", "valor": 3000 }
+]
