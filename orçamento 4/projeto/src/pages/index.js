@@ -1,150 +1,132 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Chart from 'chart.js/auto';
 
-const RelatorioDespesas = () => {
-  const [novoMes, setNovoMes] = useState('');
-  const [novaDespesaValor, setNovaDespesaValor] = useState('');
-  const [despesas, setDespesas] = useState([
-  ]);
-  const [aviso, setAviso] = useState('');
-
+const DivisaoSalario = ({ salario }) => {
   const chartRef = useRef(null);
-  const chartInstanceRef = useRef(null);
+  let myChart = useRef(null);
 
-  const adicionarDespesa = () => {
-    if (novoMes && novaDespesaValor) {
-      const novoValor = parseFloat(novaDespesaValor);
-      const novoMesValido = novoMes.match(
-        /^(Janeiro|Fevereiro|Março|Abril|Maio|Junho|Julho|Agosto|Setembro|Outubro|Novembro|Dezembro)$/
-      );
+  useEffect(() => {
+    if (chartRef.current && myChart.current !== null) {
+      myChart.current.destroy();
+    }
 
-      if (novoMesValido) {
-        const novaDespesa = { mes: novoMes, valor: novoValor };
-        setDespesas([...despesas, novaDespesa]);
-        setNovaDespesaValor('');
-        setNovoMes('');
+    const ctx = chartRef.current.getContext('2d');
+    const salario50 = salario * 0.5;
+    const contas = salario50 * 0.5;
+    const guardar = salario50 * 0.25;
+    const investimentos = salario50 * 0.3;
+    const lazer = salario50 * 0.2;
 
-        if (novoValor > 1000) {
-          const diferenca = novoValor - 1000;
-          setAviso(`Você ultrapassou em R$${diferenca.toFixed(2)} no mês de ${novoMes}`);
-        } else {
-          setAviso('');
-        }
+    const data = {
+      labels: ['Guardar', 'Investimentos', 'Lazer', 'Contas'],
+      datasets: [
+        {
+          data: [guardar, investimentos, lazer, contas],
+          backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'],
+          hoverBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'],
+        },
+      ],
+    };
 
-        if (chartInstanceRef.current) {
-          chartInstanceRef.current.destroy();
-        }
+    myChart.current = new Chart(ctx, {
+      type: 'doughnut',
+      data: data,
+    });
+  }, [salario]);
 
-        const ctx = chartRef.current.getContext('2d');
-        chartInstanceRef.current = new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: despesas.map((despesa) => despesa.mes),
-            datasets: [
-              {
-                label: 'Valor Gasto',
-                data: despesas.map((despesa) => despesa.valor),
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1,
-              },
-              {
-                label: 'Valor Hipotético (R$1000)',
-                data: [1000, 1000, 1000, 1000],
-                backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                borderColor: 'rgba(255, 99, 132, 1)',
-                borderWidth: 1,
-              },
-            ],
-          },
-        });
-      } else {
-        alert('Mês inválido. Insira um mês válido, por exemplo, "Janeiro".');
-      }
+  return (
+    <div className="border border-gray-300 w-full max-w-lg mb-4 p-4">
+      <canvas className="w-full" ref={chartRef} height={200}></canvas>
+    </div>
+  );
+};
+
+const DivisaoSalarioPagina = () => {
+  const [salarioAtual, setSalarioAtual] = useState(3000);
+  const [novoSalario, setNovoSalario] = useState('');
+
+  const [valoresDivisao, setValoresDivisao] = useState({
+    guardar: 0,
+    investimentos: 0,
+    lazer: 0,
+    contas: 0,
+  });
+
+  const handleAdicionarSalario = () => {
+    const novoSalarioNum = parseFloat(novoSalario);
+    if (!isNaN(novoSalarioNum) && novoSalarioNum > 0) {
+      setSalarioAtual(novoSalarioNum);
+      setNovoSalario('');
     } else {
-      alert('Por favor, insira tanto o mês quanto o valor da despesa.');
+      alert('Por favor, insira um valor de salário válido.');
     }
   };
 
   useEffect(() => {
-    if (chartRef.current) {
-      if (chartInstanceRef.current) {
-        chartInstanceRef.current.destroy();
-      }
+    const salario50 = salarioAtual * 0.50;
+    const contas = salario50 * 0.35;
+    const guardar = salario50 * 0.2;
+    const investimentos = salario50 * 0.25;
+    const lazer = salario50 * 0.15;
 
-      const ctx = chartRef.current.getContext('2d');
-      chartInstanceRef.current = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: despesas.map((despesa) => despesa.mes),
-          datasets: [
-            {
-              label: 'Valor Gasto',
-              data: despesas.map((despesa) => despesa.valor),
-              backgroundColor: 'rgba(75, 192, 192, 0.2)',
-              borderColor: 'rgba(75, 192, 192, 1)',
-              borderWidth: 1,
-            },
-            {
-              label: 'Valor Hipotético (R$1000)',
-              data: [1000, 1000, 1000, 1000],
-              backgroundColor: 'rgba(255, 99, 132, 0.2)',
-              borderColor: 'rgba(255, 99, 132, 1)',
-              borderWidth: 1,
-            },
-          ],
-        },
-      });
-    }
-  }, [despesas]);
+    setValoresDivisao({
+      guardar: guardar,
+      investimentos: investimentos,
+      lazer: lazer,
+      contas: contas,
+    });
+  }, [salarioAtual]);
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
-      <h1 className="text-2xl font-semibold mb-4">Relatório de Despesas Mensais</h1>
-      {aviso && <p className="text-red-600 mb-4">{aviso}</p>}
-      <table className="w-full table-auto mb-4">
-        <thead>
-          <tr>
-            <th className="px-4 py-2">Mês</th>
-            <th className="px-4 py-2">Valor</th>
-          </tr>
-        </thead>
-        <tbody>
-          {despesas.map((despesa, index) => (
-            <tr key={index} className="bg-gray-100">
-              <td className="px-4 py-2">{despesa.mes}</td>
-              <td className="px-4 py-2">{despesa.valor}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <div className="border border-gray-300 w-full max-w-lg mb-4 p-4">
-        <canvas className="w-full" ref={chartRef} height={200}></canvas>
-      </div>
-      <div className="flex items-center mb-4">
-        <input
-          type="text"
-          className="mr-2 border border-gray-300 px-2 py-1"
-          placeholder="Mês da Despesa"
-          value={novoMes}
-          onChange={(e) => setNovoMes(e.target.value)}
-        />
+      <h1 className="text-2xl font-semibold mb-4">Divisão do Salário</h1>
+      <DivisaoSalario salario={salarioAtual} />
+      <div className="mt-4 flex items-center">
         <input
           type="number"
-          className="mr-2 border border-gray-300 px-2 py-1"
-          placeholder="Valor da Despesa"
-          value={novaDespesaValor}
-          onChange={(e) => setNovaDespesaValor(e.target.value)}
+          placeholder="Novo Salário"
+          value={novoSalario}
+          onChange={(e) => setNovoSalario(e.target.value)}
+          className="border border-gray-300 rounded px-2 py-1 mr-2"
         />
         <button
-          className="bg-blue-500 text-white px-4 py-1 rounded hover-bg-blue-600"
-          onClick={adicionarDespesa}
+          onClick={handleAdicionarSalario}
+          className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600"
         >
-          Adicionar Despesa
+          Adicionar Salário
         </button>
+      </div>
+      <div className="mt-8 w-full max-w-md bg-white shadow-md p-4 rounded-lg">
+        <h2 className="text-lg font-semibold mb-2">Relatório de Divisão de Salário:</h2>
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <p className="text-sm">Guardar:</p>
+            <p className="text-lg font-semibold text-blue-500">
+              R${valoresDivisao.guardar.toFixed(2)}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm">Investimentos:</p>
+            <p className="text-lg font-semibold text-yellow-500">
+              R${valoresDivisao.investimentos.toFixed(2)}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm">Lazer:</p>
+            <p className="text-lg font-semibold text-green-500">
+              R${valoresDivisao.lazer.toFixed(2)}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm">Contas:</p>
+            <p className="text-lg font-semibold text-red-500">
+              R${valoresDivisao.contas.toFixed(2)}
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
-export default RelatorioDespesas;
+export default DivisaoSalarioPagina;
